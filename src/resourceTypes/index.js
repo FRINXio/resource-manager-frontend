@@ -10,7 +10,7 @@ ReactDOM.render(
         <QueryRenderer
             environment={environment}
             query={graphql`
-                query srcResourceTypesQuery {
+                query resourceTypesQuery {
                         QueryResourceTypes{
                             ID
                             Name

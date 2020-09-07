@@ -54,6 +54,48 @@ export const queryAllPools = `query QueryAllPools {
         ID
         Name
         PoolType
+        Tags {
+            ID
+            Tag
+        }
+        AllocationStrategy {
+            ID
+            Name
+            Lang
+        }
+        ResourceType {
+            ID
+            Name
+        }
+    }
+}`;
+
+export const queryFilterOptions = `query queryFilterOptions {
+    QueryTags {
+        ID
+        Tag
+        Pools {
+            ID
+            Name
+        }
+    },
+    QueryAllocationStrategies{ 
+        ID
+        Name
+        Lang
+        Script
+    },
+    QueryResourceTypes {
+      ID
+      Name
+      PropertyTypes {
+            Name
+            Type
+        }
+        Pools {
+            ID
+            Name
+        }
     }
 }`;
 

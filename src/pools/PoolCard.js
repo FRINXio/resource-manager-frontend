@@ -1,122 +1,72 @@
 // @flow
-import type {WithStyles} from '@material-ui/core';
-
 import * as React from 'react';
-import * as axios from 'axios';
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import IconButton from '@material-ui/core/IconButton';
-import PoolItem from './PoolItem';
-import classNames from 'classnames';
-import {fetchQuery, queryAllPools} from '../queries/Queries';
-import {graphql} from 'graphql';
-import {motion} from 'framer-motion';
+import {fetchQuery, queryAllPools, queryFilterOptions} from '../queries/Queries';
 import {useEffect, useState} from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import PoolTable from "./PoolTable";
+import Filters from "./Filters";
+import {filterByPoolType, filterByQuery, filterByResourceType, filterByStrategy, filterByTags} from "./filterUtils";
 
-const iconWidth = 40;
-const iconHeight = 40;
+const PoolCard = () => {
+    const [poolArray, setPoolArray] = useState([]);
+    const [filteredPoolArray, setFilteredPoolArray] = useState([])
+    const [filterOptions, setFilterOptions] = useState({
+        QueryAllocationStrategies: [],
+        QueryResourceTypes: [],
+        QueryTags: []
+    })
+    const [filterConstraints, setFilterConstraints] = useState({
+        searchQuery: "",
+        allocStrat: "",
+        resourceType: "",
+        tags: [],
+        poolType: ""
+    })
 
-const styles = theme => ({
-  root: {
+    // TODO: QueryRenderer should fetch the data child components should contain Fragments
+    useEffect(() => {
+        fetchQuery(queryAllPools).then(res => {
+            console.log('pools', res.data.data.QueryResourcePools);
+            setPoolArray(res.data.data.QueryResourcePools);
+            setFilteredPoolArray(res.data.data.QueryResourcePools);
+        }).catch(function (error) {
+            console.log(error); //TODO error handling
+        });
 
-    fontWeight: 500,
-    fontSize: '20px',
-    lineHeight: '24px',
-  },
-  cardContainerCollapsed: {
-    display: 'flex',
-    transition: 'all 0.935s ease-in-out',
-  },
-  cardContainerNotCollapsed: {
-    display: 'block',
-    transition: 'all 0.935s ease-in-out',
-  },
-  iconButton: {
-    margin: '15px',
-    padding: '10px',
-    width: iconWidth + 'px',
-    height: iconHeight + 'px',
-    backgroundColor: '#aaaaff',
+        fetchQuery(queryFilterOptions).then(res => {
+            console.log(res.data.data)
+            setFilterOptions(res.data.data)
+        }).catch(function (error) {
+            console.log(error); //TODO error handling
+        });
+    }, []);
 
-    border: '2px solid black',
-    borderRadius: '5px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+    // TODO filtering is performed locally on already fetched data, it should be probably handled by relay/graphql (?)
+    useEffect(() => {
+        const {searchQuery, tags, poolType, allocStrat, resourceType} = filterConstraints
+        let results = filterByQuery(searchQuery, poolArray)
+        results = filterByTags(tags, results)
+        results = filterByPoolType(poolType, results)
+        results = filterByStrategy(allocStrat, results)
+        results = filterByResourceType(resourceType, results)
 
-type Props = {
-  title: string,
-  children: React.ChildrenArray<null | React.Element<*>>,
-  className?: string,
-} & WithStyles<typeof styles>;
+        setFilteredPoolArray(results);
+    }, [filterConstraints]);
 
-const PoolCard = (props: Props) => {
-  const {className, classes, children} = props;
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [poolArray, setPoolArray] = useState([]);
+    const updateFilterConstraint = (key, value) => {
+        console.log(key, value)
+        setFilterConstraints({
+            ...filterConstraints,
+            [key]: value
+        })
+    }
 
-  useEffect(() => {
-    fetchQuery(queryAllPools).then(val => {
-      console.log('val', val.data.data.QueryResourcePools);
-      setPoolArray(val.data.data.QueryResourcePools);
-      console.log(poolArray);
-    }).catch(function (error) {
-      console.log(error); //TODO error handling
-    });
-  }, []);
-
-  const divs = [];
-  for (let i = 0; i < 3; i++) {
-    console.log(i);
-    divs.push(i);
-  }
-  console.log('divs', divs);
-  return (
-    <div>
-      <Card>
-        <div>
-          {/*{[].map((e ,i) => {*/}
-          {/*    return <motion.div*/}
-          {/*        animate={isCollapsed ? "collapsed" : "notCollapsed"}*/}
-          {/*        transition={{ duration: 0.1 + (i * 0.02) }}*/}
-          {/*        variants={variants}*/}
-          {/*        custom={i}*/}
-          {/*        className={classes.iconButton}*/}
-          {/*    >*/}
-          {/*        <div>{i, e}</div>*/}
-          {/*    </motion.div>*/}
-          {/*})}*/}
-        </div>
-
-        <div>
-          {poolArray.map((e, i) => {
-            const {ID, Name, PoolType} = e;
-            return <PoolItem key={i} poolItem={{id: ID, PoolType, Name}} i={i} />;
-          })}
-        </div>
-
-        <div>
-          <Button
-            variant="contained"
-            onClick={() => {
-              fetchQuery();
-            }}>
-            Switch
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setIsCollapsed(!isCollapsed);
-            }}>
-            Switch
-          </Button>
-        </div>
-      </Card>
-    </div>
-  );
+    return (
+        <>
+            <Filters {...filterOptions} poolArray={poolArray}
+                     updateFilterConstraint={updateFilterConstraint}/>
+            <PoolTable poolArray={filteredPoolArray} />
+        </>
+    );
 };
 
-export default withStyles(styles)(PoolCard);
+export default PoolCard
