@@ -12,7 +12,7 @@ import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import ResourceManagerTab from "./components/layout/ResourceManagerTab";
-import PoolCard from "./pools/PoolCard";
+import Pools from "./pools/Pools";
 import AllocationStrategies from "./configure/AllocationStrategies";
 import {ThemeProvider} from "@material-ui/styles";
 import theme from './components/layout/theme'
@@ -60,7 +60,7 @@ const ResourceManagerTabs = (props: Props) => {
                 </Tabs>
             </AppBar>
             <ResourceManagerTab value={value} index={0}>
-                <PoolCard />
+                <Pools />
             </ResourceManagerTab>
             <ResourceManagerTab value={value} index={1}>
                 <AllocationStrategies />
@@ -69,7 +69,7 @@ const ResourceManagerTabs = (props: Props) => {
                 <ResourceTypes />
             </ResourceManagerTab>
             <ResourceManagerTab value={value} index={3}>
-                <PoolCard />
+                <Pools />
             </ResourceManagerTab>
         </ThemeProvider>
     );

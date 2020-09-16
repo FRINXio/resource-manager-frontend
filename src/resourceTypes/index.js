@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import PoolCard from './pools/PoolCard'
+import PoolCard from './pools/Pools'
 import AllocationStrategies from './configure/AllocationStrategies'
 import {graphql, QueryRenderer} from 'react-relay';
 import environment from './environment';

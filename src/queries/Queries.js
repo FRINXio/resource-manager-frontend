@@ -2,22 +2,23 @@
 import * as axios from 'axios';
 // import {graphql} from 'babel-plugin-relay/macro';
 
+//resourcemanager/graphql/query
 const BASIC_URL = 'http://0.0.0.0:5000/graphql/query';
 
 const headers = {
-  "x-tenant-id": "fb",
-  "x-auth-user-role": "OWNER",
-  "from": "fb-user@frinx.io"
+    "x-tenant-id": "fb",
+    "x-auth-user-role": "OWNER",
+    "from": "fb-user@frinx.io"
 };
 
 export function fetchQuery(query) {
-  return axios.post(
-    BASIC_URL,
-    {
-      query,
-    },
-    {headers},
-  );
+    return axios.post(
+        BASIC_URL,
+        {
+            query,
+        },
+        {headers},
+    );
 }
 
 export const queryAllocationStrats = `query queryAllocationStrats {
@@ -31,12 +32,12 @@ export const queryAllocationStrats = `query queryAllocationStrats {
     `;
 
 export const createAllocationStrat = (name, lang, script) => {
-  return (
-    `mutation createAllocationStrat {
+    return (
+        `mutation createAllocationStrat {
     CreateAllocationStrategy(
         name: "` +
-    name +
-    `",
+        name +
+        `",
         script: "` + script + `",
         lang: ` + lang + `,
     ){
@@ -46,7 +47,7 @@ export const createAllocationStrat = (name, lang, script) => {
         Script
     }
 }`
-  );
+    );
 };
 
 export const queryAllPools = `query QueryAllPools {
@@ -117,12 +118,12 @@ export const queryResourceTypes = `
 `;
 
 export const createNewResourceType = name => {
-  return (
-    `mutation createNewResourceType {
+    return (
+        `mutation createNewResourceType {
         CreateResourceType(
             resourceName: "` +
-    name +
-    `",
+        name +
+        `",
             resourceProperties: {
             vlan: "int"
         }
@@ -131,7 +132,7 @@ export const createNewResourceType = name => {
             Name
         }
     }`
-  );
+    );
 };
 
 export const createComplexResourceType = `mutation createComplexResourceType {
@@ -147,26 +148,50 @@ export const createComplexResourceType = `mutation createComplexResourceType {
     }
 }`;
 
-export const createSetPool = `mutation createSetPool {
-    CreateSetPool(
-        resourceTypeId: 25769803776,
-        poolName: "vlan_test5",
-        poolValues: [{vlan: 13}, {vlan: 14},],
-        poolDealocationSafetyPeriod: 0
-){
+export const tagPool = (tagId, poolId) => `mutation TagPool {
+    TagPool(tagId: ${tagId} , poolId: ${poolId}) {
+        Tag
+        Pools {
+            ID
+        }
+    }
+}`;
+
+export const createSetPool = (resourceTypeId, poolName, description, poolValues, poolDealocationSafetyPeriod) => `mutation createSetPool {
+    CreateSetPool(input: {
+        resourceTypeId: ${resourceTypeId},
+        poolName: "${poolName}",
+        description: "${description}",
+        poolValues: ${poolValues},
+        poolDealocationSafetyPeriod: ${poolDealocationSafetyPeriod}
+}){
         ID
         PoolType
         Name
     }
 }`;
 
-export const createAllocationPool = `mutation createAllocationPool {
-    CreateAllocatingPool(
-        resourceTypeId: 25769803776,
-        poolName: "vlan_allocating",
-        allocationStrategyId: 1,
-        poolDealocationSafetyPeriod: 0
-){
+export const createAllocationPool = (resourceTypeId, poolName, description, allocationStrategyId, poolDealocationSafetyPeriod) => `mutation createAllocationPool {
+    CreateAllocatingPool(input: {
+        resourceTypeId: ${resourceTypeId},
+        poolName: "${poolName}",
+        description: "${description}",
+        allocationStrategyId: ${allocationStrategyId},
+        poolDealocationSafetyPeriod: ${poolDealocationSafetyPeriod}
+}){
+        ID
+        PoolType
+        Name
+    }
+}`;
+
+export const createSingletonPool = (resourceTypeId, poolName, description, poolValues) => `mutation createSingletonPool {
+    CreateSingletonPool(input: {
+        resourceTypeId: ${resourceTypeId},
+        poolName: "${poolName}",
+        description: "${description}",
+        poolValues: ${poolValues}
+}){
         ID
         PoolType
         Name
