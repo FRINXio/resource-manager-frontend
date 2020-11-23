@@ -32,6 +32,8 @@ import ResourceManagerQueryRenderer from '../../utils/relay/ResourceManagerQuery
 import { createPool } from './createPoolQueries';
 import { fetchQuery, queryFilterOptions } from '../../queries/Queries';
 import CreateNestedPoolMutation from '../../mutations/createPools/CreateNestedPoolMutation';
+import CreateNestedAllocatingPoolMutation
+  from '../../mutations/createPools/CreateNestedAllocatingPoolMutation';
 
 // ENUM : probably query in future (?)
 const ALLOCATING = 'allocating';
@@ -156,21 +158,67 @@ const CreatePoolPage = (props) => {
     };
 
     if (isNested) {
+      // eslint-disable-next-line default-case
+      switch (pool.poolType) {
+        case 'set':
+          CreateNestedPoolMutation({
+            input: {
+              resourceTypeId: pool.resourceType.id,
+              poolName: pool.poolName,
+              description: pool.description,
+              // allocationStrategyId: (allocationStrategy) ? pool.allocationStrategy.id : null,
+              poolDealocationSafetyPeriod: pool.dealocationPeriod,
+              // poolProperties: pool.poolProperties,
+              // poolPropertyTypes: pool.poolPropertyTypes,
+              poolValues: pool.poolValues,
+              parentResourceId: parentResourceID,
+            },
+          }, (response, err) => {
+            if (err) {
+              console.log(err);
+              enqueueSnackbar(err.message, {
+                variant: 'error',
+              });
+            } else {
+              enqueueSnackbar('Pool created', {
+                variant: 'success',
+              });
+              // eslint-disable-next-line react/prop-types
+              props.setShowCreatePool(false);
+            }
+          });
+          return;
+
+        case 'allocating':
+          console.log('allo')
+          CreateNestedAllocatingPoolMutation({
+            input: {
+              resourceTypeId: pool.resourceType.id,
+              poolName: pool.poolName,
+              description: pool.description,
+              allocationStrategyId: (allocationStrategy) ? pool.allocationStrategy.id : null,
+              poolDealocationSafetyPeriod: pool.dealocationPeriod,
+              // poolProperties: pool.poolProperties,
+              // poolPropertyTypes: pool.poolPropertyTypes,
+              parentResourceId: parentResourceID,
+            },
+          }, (response, err) => {
+            if (err) {
+              console.log(err);
+              enqueueSnackbar(err.message, {
+                variant: 'error',
+              });
+            } else {
+              enqueueSnackbar('Pool created', {
+                variant: 'success',
+              });
+              // eslint-disable-next-line react/prop-types
+              props.setShowCreatePool(false);
+            }
+          });
+          return;
+      }
       // eslint-disable-next-line
-      CreateNestedPoolMutation({
-        input: {
-          resourceTypeId: pool.resourceType.id,
-          poolName: pool.poolName,
-          description: pool.description,
-          // allocationStrategyId: (allocationStrategy) ? pool.allocationStrategy.id : null,
-          poolDealocationSafetyPeriod: pool.dealocationPeriod,
-          // poolProperties: pool.poolProperties,
-          // poolPropertyTypes: pool.poolPropertyTypes,
-          poolValues: pool.poolValues,
-          parentResourceId: parentResourceID,
-        },
-      });
-      return;
     }
 
     createPool(pool).then((res, err) => {
@@ -632,7 +680,7 @@ const CreatePoolPage = (props) => {
             </Paper>
           ) : null }
 
-          {poolType === ALLOCATING ? (
+          {(poolType === ALLOCATING && !isNested) ? (
             <Paper elevation={2} className={classes.paper}>
               <Grid container spacing={3}>
                 <Grid item xs={6}>
@@ -658,7 +706,6 @@ const CreatePoolPage = (props) => {
                 variables={{ }}
                 render={(queryProps) => {
                   const { QueryRootResourcePools } = queryProps;
-                  console.log(QueryRootResourcePools);
 
                   return (
                     <Paper elevation={2} className={classes.paper}>
@@ -685,7 +732,7 @@ const CreatePoolPage = (props) => {
                                 label={(
                                   <div className={classes.treeItemLabel}>
                                     {rootPool.Name}
-                                    {(rootPool) ? <Radio value={rootPool.id} /> : null}
+                                    {(rootPool) ? <Radio value={rootPool.id} onChange={() => { setParentResourceID(findFreeResource(rootPool).id); }} /> : null}
                                   </div>
                               )}
                               >

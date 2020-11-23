@@ -28,6 +28,7 @@ import AddIcon from '@material-ui/icons/Add';
 import TextField from '@material-ui/core/TextField';
 import ClaimResourceMutation from '../../mutations/ClaimResourceMutation';
 import ResourceManagerQueryRenderer from '../../utils/relay/ResourceManagerQueryRenderer';
+import Pagination from '@material-ui/lab/Pagination';
 
 const styles = () => ({
   header: {
@@ -112,7 +113,7 @@ const StyledTableCell = withStyles((theme) => ({
 }))(TableCell);
 
 const ResourceList = (props: Props) => {
-  const { classes } = props;
+  const { classes, setUpdateDataVarProp, updateDataVarProp } = props;
 
   // eslint-disable-next-line no-unused-vars
   const [showEditCard, setShowEditCard] = useState(false);
@@ -133,6 +134,7 @@ const ResourceList = (props: Props) => {
       userInput: tmp,
     }, () => {
       setUpdateDataVar(updateDataVar + 1);
+      setUpdateDataVarProp(updateDataVarProp + 1)
     });
   };
   const freeResource = (row) => {
@@ -142,6 +144,7 @@ const ResourceList = (props: Props) => {
       input: row.Properties,
     }, () => {
       setUpdateDataVar(updateDataVar + 1);
+      setUpdateDataVarProp(updateDataVarProp + 1)
     });
   };
   const [properties, setProperties] = useState([{ type: '', value: '' }]);
@@ -255,6 +258,7 @@ const ResourceList = (props: Props) => {
                   </TableBody>
                 </Table>
               </TableContainer>
+              <Pagination count={10} shape="rounded" />
             </div>
           );
         }}
