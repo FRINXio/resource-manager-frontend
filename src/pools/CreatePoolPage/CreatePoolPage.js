@@ -25,9 +25,11 @@ import TreeItem from '@material-ui/lab/TreeItem';
 import TreeView from '@material-ui/lab/TreeView';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import SettingsIcon from '@material-ui/icons/Settings';
 import { graphql } from 'react-relay';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import { Radio } from '@material-ui/core';
+import Tooltip from '@material-ui/core/Tooltip';
 import ResourceManagerQueryRenderer from '../../utils/relay/ResourceManagerQueryRenderer';
 import { createPool } from './createPoolQueries';
 import { fetchQuery, queryFilterOptions } from '../../queries/Queries';
@@ -190,7 +192,7 @@ const CreatePoolPage = (props) => {
           return;
 
         case 'allocating':
-          console.log('allo')
+          console.log('allo');
           CreateNestedAllocatingPoolMutation({
             input: {
               resourceTypeId: pool.resourceType.id,
@@ -535,6 +537,15 @@ const CreatePoolPage = (props) => {
             <div className={classes.treeItemLabel}>
               {NestedPool.Name}
               <Radio value={NestedPool.id} onChange={handleIconClick} />
+              {Resources.map((e, i) => (
+                <>
+                  {(!e.NestedPool) ? (
+                    <Tooltip title={JSON.stringify(e.Properties)}>
+                      <SettingsIcon onClick={() => { setParentResourceID(e.id); }} />
+                    </Tooltip>
+                  ) : null}
+                </>
+              ))}
             </div>
           )}
         >

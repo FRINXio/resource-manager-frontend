@@ -9,7 +9,7 @@ import { graphql } from 'react-relay';
 import { withStyles } from '@material-ui/core/styles';
 import TableCell from '@material-ui/core/TableCell';
 import { withSnackbar } from 'notistack';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import TreeItem from '@material-ui/lab/TreeItem';
@@ -25,8 +25,11 @@ import Paper from '@material-ui/core/Paper';
 import Chip from '@material-ui/core/Chip';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import LaunchIcon from '@material-ui/icons/Launch';
+import Pagination from '@material-ui/lab/Pagination';
 import ResourceManagerQueryRenderer from '../../../utils/relay/ResourceManagerQueryRenderer';
 import ResourcesList from '../../resources/ResourcesList';
+import { fetchQuery, QueryAllocatedResources } from '../../../queries/Queries';
+import { Button } from '@material-ui/core';
 
 const styles = (theme) => ({
   container: {
@@ -173,24 +176,6 @@ const query = graphql`query PoolDetailPageQuery($poolId: ID!) {
         Name
     }
     
-    QueryResourcePools {
-        id
-        Name
-        allocatedResources {
-            pageInfo {
-                hasNextPage
-                hasPreviousPage
-                endCursor {
-                    ID
-                }
-                startCursor {
-                    ID
-                }
-            }
-            totalCount
-        }
-    }
-    
 }
 `;
 
@@ -201,6 +186,36 @@ const PoolDetailPage = (props: Props) => {
   const { id } = params;
 
   const [updateDataVar, setUpdateDataVar] = useState(0);
+  const [first, setFirst] = useState(10);
+  const [after, setAfter] = useState(null);
+  const [before, setBefore] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalPages] = useState(0);
+  const [resources, setResources] = useState([]);
+
+  const queryAllocatedResources = (beforeVar) => {
+    console.log(after);
+    fetchQuery(QueryAllocatedResources(id, first, after, beforeVar)).then((v) => {
+      setTotalPages(v.data.data.QueryResourcePool.allocatedResources.totalCount);
+      setResources([...new Set([...resources, ...v.data.data.QueryResourcePool.allocatedResources.edges])]);
+      console.log([...new Set(resources)])
+      setAfter(v.data.data.QueryResourcePool.allocatedResources.pageInfo.endCursor);
+      setBefore(v.data.data.QueryResourcePool.allocatedResources.pageInfo.startCursor);
+    });
+  };
+
+  useEffect(() => {
+    queryAllocatedResources(null);
+  }, []);
+  useEffect(() => {
+    fetchQuery(QueryAllocatedResources(id, resources.length, (resources[0]) ? resources[0].cursor : null)).then((v) => {
+      setTotalPages(v.data.data.QueryResourcePool.allocatedResources.totalCount);
+      setResources(v.data.data.QueryResourcePool.allocatedResources.edges);
+      setAfter(v.data.data.QueryResourcePool.allocatedResources.pageInfo.endCursor);
+      setBefore(v.data.data.QueryResourcePool.allocatedResources.pageInfo.startCursor);
+    });
+
+  }, [updateDataVar]);
 
   const RESOURCE_MANAGER_URL = '/resourcemanager/frontend';
 
@@ -243,16 +258,25 @@ const PoolDetailPage = (props: Props) => {
     );
   };
 
+  const handlePaginationChange = (event, value) => {
+    console.log(event, value);
+    // (page > value) ? setBefore(null) : setAfter(null)
+    // setPage(value)
+    console.log(resources[resources.length - 1]);
+    queryAllocatedResources();
+  };
+
   return (
     <div>
       <ResourceManagerQueryRenderer
         query={query}
-        variables={{ updateDataVar, poolId: id }}
+        variables={{ updateDataVar, poolId: id, first }}
         render={(queryProps) => {
           const {
             QueryResources, QueryPoolCapacity, QueryResourcePoolHierarchyPath, QueryResourcePool,
           } = queryProps;
           console.log(queryProps);
+          if (first === 0) setFirst(10);
 
           return (
             <div>
@@ -340,7 +364,12 @@ const PoolDetailPage = (props: Props) => {
                     <ResourcesList
                       setUpdateDataVarProp={setUpdateDataVar}
                       updateDataVarProp={updateDataVar}
+                      resources={resources}
                     />
+                    <Button variant="contained"
+                            color="primary"
+                            disabled={(resources.length === totalCount)}
+                            onClick={handlePaginationChange}>LOAD MORE</Button>
                   </Paper>
 
                   {/* <Paper className={classes.paper}> */}
