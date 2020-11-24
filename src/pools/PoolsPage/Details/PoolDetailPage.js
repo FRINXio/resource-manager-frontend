@@ -193,29 +193,22 @@ const PoolDetailPage = (props: Props) => {
   const [totalCount, setTotalPages] = useState(0);
   const [resources, setResources] = useState([]);
 
-  const queryAllocatedResources = (beforeVar) => {
+  const queryAllocatedResources = () => {
     console.log(after);
-    fetchQuery(QueryAllocatedResources(id, first, after, beforeVar)).then((v) => {
+    fetchQuery(QueryAllocatedResources(id, first, after, before)).then((v) => {
       setTotalPages(v.data.data.QueryResourcePool.allocatedResources.totalCount);
-      setResources([...new Set([...resources, ...v.data.data.QueryResourcePool.allocatedResources.edges])]);
-      console.log([...new Set(resources)])
+      setResources(v.data.data.QueryResourcePool.allocatedResources.edges);
       setAfter(v.data.data.QueryResourcePool.allocatedResources.pageInfo.endCursor);
       setBefore(v.data.data.QueryResourcePool.allocatedResources.pageInfo.startCursor);
     });
   };
 
   useEffect(() => {
-    queryAllocatedResources(null);
+    queryAllocatedResources();
   }, []);
   useEffect(() => {
-    fetchQuery(QueryAllocatedResources(id, resources.length, (resources[0]) ? resources[0].cursor : null)).then((v) => {
-      setTotalPages(v.data.data.QueryResourcePool.allocatedResources.totalCount);
-      setResources(v.data.data.QueryResourcePool.allocatedResources.edges);
-      setAfter(v.data.data.QueryResourcePool.allocatedResources.pageInfo.endCursor);
-      setBefore(v.data.data.QueryResourcePool.allocatedResources.pageInfo.startCursor);
-    });
-
-  }, [updateDataVar]);
+    queryAllocatedResources();
+  }, [page]);
 
   const RESOURCE_MANAGER_URL = '/resourcemanager/frontend';
 
@@ -260,10 +253,11 @@ const PoolDetailPage = (props: Props) => {
 
   const handlePaginationChange = (event, value) => {
     console.log(event, value);
-    // (page > value) ? setBefore(null) : setAfter(null)
-    // setPage(value)
-    console.log(resources[resources.length - 1]);
-    queryAllocatedResources();
+    (page < value) ? setBefore(null) : setAfter(null);
+
+    setPage(value);
+    console.log((page > value), before, after, page)
+    //queryAllocatedResources();
   };
 
   return (
@@ -366,10 +360,12 @@ const PoolDetailPage = (props: Props) => {
                       updateDataVarProp={updateDataVar}
                       resources={resources}
                     />
-                    <Button variant="contained"
-                            color="primary"
-                            disabled={(resources.length === totalCount)}
-                            onClick={handlePaginationChange}>LOAD MORE</Button>
+                    <Pagination
+                      count={Math.ceil(totalCount / first)}
+                      shape="rounded"
+                      siblingCount={0}
+                      onChange={handlePaginationChange}
+                    />
                   </Paper>
 
                   {/* <Paper className={classes.paper}> */}

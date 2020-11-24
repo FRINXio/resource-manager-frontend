@@ -95,6 +95,14 @@ const useStyles = makeStyles((theme) => ({
   addNewButton: {
     width: '50px',
   },
+  parentResourceLabelID: {
+    fontSize: '12px',
+    marginRight: '3px',
+  },
+  parentResourceLabelProps: {
+    fontSize: '10px',
+    color: '#757575',
+  },
 }));
 
 const CreatePoolPage = (props) => {
@@ -120,6 +128,7 @@ const CreatePoolPage = (props) => {
   const [rootPool, setRootPool] = useState({ Resources: [] });
   const [parentPool, setParentPool] = useState(null);
   const [parentResourceID, setParentResourceID] = useState(null);
+  const [parentResourcesArray, setParentResourcesArray] = useState([]);
 
   useEffect(() => {
     fetchQuery(queryFilterOptions).then((res) => {
@@ -527,6 +536,7 @@ const CreatePoolPage = (props) => {
 
     const handleIconClick = () => {
       setParentResourceID(findFreeResource(NestedPool).id);
+      setParentResourcesArray(Resources);
     };
 
     return (
@@ -537,15 +547,6 @@ const CreatePoolPage = (props) => {
             <div className={classes.treeItemLabel}>
               {NestedPool.Name}
               <Radio value={NestedPool.id} onChange={handleIconClick} />
-              {Resources.map((e, i) => (
-                <>
-                  {(!e.NestedPool) ? (
-                    <Tooltip title={JSON.stringify(e.Properties)}>
-                      <SettingsIcon onClick={() => { setParentResourceID(e.id); }} />
-                    </Tooltip>
-                  ) : null}
-                </>
-              ))}
             </div>
           )}
         >
@@ -562,6 +563,10 @@ const CreatePoolPage = (props) => {
   const handleParentPoolChange = (event) => {
     event.preventDefault();
     setParentPool(event.target.value);
+  };
+
+  const handeParentResourceChange = (event, value) => {
+    setParentResourceID(value.id);
   };
 
   return (
@@ -720,15 +725,29 @@ const CreatePoolPage = (props) => {
 
                   return (
                     <Paper elevation={2} className={classes.paper}>
+                      <div style={{ marginBottom: '30px' }}>
+                        <Typography component="div">
+                          <Box fontSize="h5.fontSize" fontWeight="fontWeightMedium">
+                            Select Parent
+                          </Box>
+                        </Typography>
+                      </div>
                       <Grid container spacing={3}>
-                        <Grid item xs={6}>
-                          <div style={{ marginBottom: '30px' }}>
-                            <Typography component="div">
-                              <Box fontSize="h5.fontSize" fontWeight="fontWeightMedium">
-                                Select Parent
-                              </Box>
-                            </Typography>
-                          </div>
+                        <Grid item xs={3}>
+                          <Autocomplete
+                            id="combo-box-demo"
+                            options={QueryRootResourcePools}
+                            getOptionLabel={(option) => option.Name}
+                            onChange={(e, value) => handleRootPoolChange(e, value)}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Pool Type"
+                                required
+                                placeholder="Select Pool Type"
+                              />
+                            )}
+                          />
                         </Grid>
                         <Grid item xs={6}>
                           <TreeView
@@ -756,23 +775,35 @@ const CreatePoolPage = (props) => {
                             </RadioGroup>
                           </TreeView>
                         </Grid>
-                        <Grid item xs={6}>
-                          <Grid item xs={4}>
-                            <Autocomplete
-                              id="combo-box-demo"
-                              options={QueryRootResourcePools}
-                              getOptionLabel={(option) => option.Name}
-                              onChange={(e, value) => handleRootPoolChange(e, value)}
-                              renderInput={(params) => (
+
+                        <Grid item xs={3}>
+                          <Autocomplete
+                            id="combo-box-demo"
+                            options={parentResourcesArray}
+                            getOptionLabel={(option) => option.id}
+                            onChange={(e, value) => handeParentResourceChange(e, value)}
+                            renderOption={(value) => (
+                              <>
+                                <div style={{ display: 'block' }}>
+                                  <div className={classes.parentResourceLabelID}>{value.id}</div>
+                                  <div className={classes.parentResourceLabelProps}>{JSON.stringify(value.Properties)}</div>
+                                </div>
+
+                              </>
+                            )}
+                            renderInput={(params) => (
+                              <>
                                 <TextField
                                   {...params}
-                                  label="Pool Type"
+                                  label="Parent Resource"
                                   required
-                                  placeholder="Select Pool Type"
-                                />
-                              )}
-                            />
-                          </Grid>
+                                  placeholder="Select Parent Resource"
+                                >
+                                  asf
+                                </TextField>
+                              </>
+                            )}
+                          />
                         </Grid>
                       </Grid>
                     </Paper>
