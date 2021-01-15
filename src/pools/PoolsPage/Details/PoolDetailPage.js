@@ -176,7 +176,6 @@ const query = graphql`
 const PoolDetailPage = (props: Props) => {
   const { classes, match } = props;
   const { params } = match;
-  console.log(props);
   const { id } = params;
 
   const [updateDataVar, setUpdateDataVar] = useState(0);
@@ -213,7 +212,7 @@ const PoolDetailPage = (props: Props) => {
     queryAllocatedResources();
   }, [updateDataVar]);
   useEffect(() => {
-    queryAllocatedResources(after, before);
+    // queryAllocatedResources(after, before);
   }, [page]);
 
   const RESOURCE_MANAGER_URL = '/resourcemanager/frontend';
@@ -253,8 +252,9 @@ const PoolDetailPage = (props: Props) => {
 
   const handlePaginationChange = (event, value) => {
     console.log(event, value);
-    page < value ? setBefore(null) : setAfter(null);
-
+    // page < value ? setBefore(null) : setAfter(null);
+    // eslint-disable-next-line no-unused-expressions
+    page < value ? queryAllocatedResources(after, null) : queryAllocatedResources(null, before);
     setPage(value);
   };
 

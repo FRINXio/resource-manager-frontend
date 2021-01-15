@@ -24,6 +24,7 @@ import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import AddIcon from '@material-ui/icons/Add';
+import { Waypoint } from "react-waypoint";
 import TextField from '@material-ui/core/TextField';
 import ClaimResourceMutation from '../../mutations/ClaimResourceMutation';
 import FreeResourceMutation from '../../mutations/FreeResourceMutation';
@@ -88,6 +89,9 @@ const styles = () => ({
     width: '100px',
     marginLeft: '32px',
   },
+  container: {
+    height: '500px'
+  }
 });
 
 type Props = ContextRouter & WithStyles<typeof styles> & {};
@@ -231,7 +235,7 @@ const ResourceList = (props: Props) => {
       ))}
       <div>
         <TableContainer component={Paper} className={classes.container}>
-          <Table ria-label="pool table">
+          <Table ria-label="pool table" stickyHeader>
             <TableHead>
               <TableRow>
                 <StyledTableCell align="left">Actions</StyledTableCell>
@@ -266,6 +270,9 @@ const ResourceList = (props: Props) => {
                   </TableCell>
                 </TableRow>
               ))}
+              <Waypoint onEnter={() => {
+                console.log('test')
+              }} />
             </TableBody>
           </Table>
         </TableContainer>
